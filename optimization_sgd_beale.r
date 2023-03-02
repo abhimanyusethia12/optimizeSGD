@@ -36,6 +36,15 @@ beale_grad <- function(x){
 ####################
 # PLOTTING FUNCTIONS
 ####################
+convert_to_df <- function(xx_history, x1_lower, x1_upper, x2_lower,x2_upper) {
+    xx_history_df <- data.frame(x1 = sapply(xx_history, `[`, 1),
+                                x2 = sapply(xx_history, `[`, 2))
+    xx_history_df$beale <- apply(xx_history_df, 1, function(b) {
+        beale(b)
+    })
+
+    return (xx_history_df)
+}
 contour_plotting <- function(xx_history, x1_lower, x1_upper, x2_lower, x2_upper,algo_name="Optimized") {
     xx_history_df <- data.frame(x1 = sapply(xx_history, `[`, 1),
                                 x2 = sapply(xx_history, `[`, 2))
@@ -66,6 +75,36 @@ contour_plotting <- function(xx_history, x1_lower, x1_upper, x2_lower, x2_upper,
         scale_color_manual(values = setNames(c("blue", "green"), c(algo_name, "Optima")))
         #theme_classic()
 }
+any2_contour_plotting <- function(xx_history1,xx_history2, x1_lower, x1_upper, x2_lower, x2_upper,name1="Method 1", name2 = "Method 2") {
+    df1 <- convert_to_df(xx_history1,x1_lower,x1_upper,x2_lower,x2_upper)
+    df2 <- convert_to_df(xx_history2,x1_lower,x1_upper,x2_lower,x2_upper) 
+    xx_grid <- expand.grid(x1 = seq(x1_lower, x1_upper, length.out = 500),
+                            x2 = seq(x2_lower, x2_upper, length.out = 500))
+    xx_grid$beale <- apply(xx_grid, 1, function(b) {
+        beale(b)
+    })
+
+    xx.star_df <- data.frame(x1 = xx.star[1], x2 = xx.star[2])
+    xx.star_df$beale <- apply(xx.star_df, 1, function(b) {
+        beale(b)
+    })
+
+    windows()
+    ggplot(xx_grid, aes(x1, x2, z = beale)) +
+        geom_contour(color = "red",bins=100) +
+        geom_point(data = df1,aes(x = x1, y = x2, color = name1), show.legend = TRUE) +
+        geom_point(data = df2,aes(x = x1, y = x2, color = name2), show.legend = TRUE) +
+        geom_point(data=xx.star_df,aes(x = x1, y = x2,color="Optima"),show.legend = TRUE)+
+        labs(x = expression(x1),
+            y = expression(x2),
+            title = "Contour Plot of Beale Function",
+            color = "Legend") +
+        scale_x_continuous(limits = c(x1_lower, x1_upper)) +
+        scale_y_continuous(limits = c(x2_lower, x2_upper)) +
+        scale_color_manual(values = setNames(c("red","blue","green"), c(name1, name2, "Optima")))
+        #theme_classic()
+}
+
 
 ##########################
 # VANILLA GRADIENT DESCENT
@@ -102,10 +141,10 @@ momentum_gd <- function(xx, num_iters, alpha,gamma){
     end <- Sys.time()
     return(list(xx = xx,xx_history = xx_history, time = end-start))
 }
-gamma <- 0.02
+gamma <- 0.3
 momentum_output <- momentum_gd(xx_initial,num_iters,alpha,gamma)
 #contour_plotting(momentum_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
-
+any2_contour_plotting(vgd_output$xx_history,momentum_output$xx_history,x1_lower,x1_upper,x2_lower,x2_upper,"Vanilla GD","Momentum GD")
 ##################
 # NAG- NESTEROV ACCELERATED GRADIENT
 ##################
@@ -264,15 +303,6 @@ xx.star_df <- data.frame(x1 = xx.star[1], x2 = xx.star[2])
 xx.star_df$beale <- apply(xx.star_df, 1, function(b) {
     beale(b)
 })
-convert_to_df <- function(xx_history, x1_lower, x1_upper, x2_lower,x2_upper) {
-    xx_history_df <- data.frame(x1 = sapply(xx_history, `[`, 1),
-                                x2 = sapply(xx_history, `[`, 2))
-    xx_history_df$beale <- apply(xx_history_df, 1, function(b) {
-        beale(b)
-    })
-
-    return (xx_history_df)
-}
 
 vgd_df <- convert_to_df(vgd_output$xx_history, x1_lower, x1_upper, x2_lower, x2_upper)
 momentum_df <- convert_to_df(momentum_output$xx_history, x1_lower, x1_upper, x2_lower, x2_upper)

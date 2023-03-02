@@ -76,7 +76,6 @@ contour_plotting <- function(theta_history, theta0_lower, theta0_upper, theta1_l
         scale_color_manual(values = setNames(c("blue", "green"), c(algo_name, "Actual Theta")))
         #theme_classic()
 }
-
 gdvssgd_contour_plotting <- function(gd_output,sgd_output, theta0_lower, theta0_upper, theta1_lower, theta1_upper, algo_name = "Optimized") {
     
     gd_df <- convert_to_df(gd_output$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
@@ -107,7 +106,100 @@ gdvssgd_contour_plotting <- function(gd_output,sgd_output, theta0_lower, theta0_
         scale_color_manual(values = setNames(c("blue","red", "green"), c(gd_name,sgd_name, "Actual Theta")))
         #theme_classic()
 }
-
+vanillavsopti_contour_plotting <- function(gd_output,sgd_output, theta0_lower, theta0_upper, theta1_lower, theta1_upper, algo_name = "Optimized",type_name = "GD") {
+    
+    gd_df <- convert_to_df(gd_output$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    sgd_df <- convert_to_df(sgd_output$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    theta_grid <- expand.grid(theta0 = seq(theta0_lower, theta0_upper, length.out = 500),
+                            theta1 = seq(theta1_lower, theta1_upper, length.out = 500))
+    theta_grid$loss <- apply(theta_grid, 1, function(b) {
+        cost(X, y, b)
+    })
+    theta.star_df <- data.frame(theta0 = theta.star[1], theta1 = theta.star[2])
+    theta.star_df$loss <- apply(theta.star_df, 1, function(b) {
+        cost(X, y, b)
+    })
+    gd_name <- paste("Vanilla",type_name)
+    sgd_name <- paste(algo_name,type_name)
+    windows()
+    ggplot(theta_grid, aes(theta0, theta1, z = loss)) +
+        geom_contour(color = "red") +
+        geom_point(data = gd_df,aes(x = theta0, y = theta1,color = gd_name),show.legend = TRUE ) +
+        geom_point(data = sgd_df,aes(x = theta0, y = theta1,color = sgd_name),show.legend = TRUE ) +
+        geom_point(data = theta.star_df,aes(x = theta0, y = theta1,color = "Actual Theta"),show.legend = TRUE)+
+        labs(x = expression(theta[0]),
+            y = expression(theta[1]),
+            title = "Contour Plot of Loss Function",
+            color = "Optimization vs Vanilla") +
+        scale_x_continuous(limits = c(theta0_lower, theta0_upper)) +
+        scale_y_continuous(limits = c(theta1_lower, theta1_upper)) +
+        scale_color_manual(values = setNames(c("blue","red", "green"), c(gd_name,sgd_name, "Actual Theta")))
+        #theme_classic()
+}
+any2_contour_plotting <- function(output1,output2, theta0_lower, theta0_upper, theta1_lower, theta1_upper, name1 = "Output 1",name2 = "Output 2") {
+    
+    gd_df <- convert_to_df(output1$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    sgd_df <- convert_to_df(output2$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    theta_grid <- expand.grid(theta0 = seq(theta0_lower, theta0_upper, length.out = 500),
+                            theta1 = seq(theta1_lower, theta1_upper, length.out = 500))
+    theta_grid$loss <- apply(theta_grid, 1, function(b) {
+        cost(X, y, b)
+    })
+    theta.star_df <- data.frame(theta0 = theta.star[1], theta1 = theta.star[2])
+    theta.star_df$loss <- apply(theta.star_df, 1, function(b) {
+        cost(X, y, b)
+    })
+    gd_name <- name1
+    sgd_name <- name2
+    windows()
+    ggplot(theta_grid, aes(theta0, theta1, z = loss)) +
+        geom_contour(color = "red") +
+        geom_point(data = gd_df,aes(x = theta0, y = theta1,color = gd_name),show.legend = TRUE ) +
+        geom_point(data = sgd_df,aes(x = theta0, y = theta1,color = sgd_name),show.legend = TRUE ) +
+        geom_point(data = theta.star_df,aes(x = theta0, y = theta1,color = "Actual Theta"),show.legend = TRUE)+
+        labs(x = expression(theta[0]),
+            y = expression(theta[1]),
+            title = "Contour Plot of Loss Function",
+            color = "Optimization vs Vanilla") +
+        scale_x_continuous(limits = c(theta0_lower, theta0_upper)) +
+        scale_y_continuous(limits = c(theta1_lower, theta1_upper)) +
+        scale_color_manual(values = setNames(c("blue","red", "green"), c(gd_name,sgd_name, "Actual Theta")))
+        #theme_classic()
+}
+any4_contour_plotting <- function(output1, output2, output3, output4, theta0_lower, theta0_upper, theta1_lower, theta1_upper, name1 = "Output 1", name2 = "Output 2", name3="Output 3", name4="Output 4") {
+    
+    o1_df <- convert_to_df(output1$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    o2_df <- convert_to_df(output2$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    o3_df <- convert_to_df(output3$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    o4_df <- convert_to_df(output4$theta_history, theta0_lower, theta0_upper, theta1_lower, theta1_upper)
+    
+    theta_grid <- expand.grid(theta0 = seq(theta0_lower, theta0_upper, length.out = 500),
+                            theta1 = seq(theta1_lower, theta1_upper, length.out = 500))
+    theta_grid$loss <- apply(theta_grid, 1, function(b) {
+        cost(X, y, b)
+    })
+    theta.star_df <- data.frame(theta0 = theta.star[1], theta1 = theta.star[2])
+    theta.star_df$loss <- apply(theta.star_df, 1, function(b) {
+        cost(X, y, b)
+    })
+    
+    windows()
+    ggplot(theta_grid, aes(theta0, theta1, z = loss)) +
+        geom_contour(color = "red") +
+        geom_point(data = o1_df,aes(x = theta0, y = theta1,color = name1),show.legend = TRUE ) +
+        geom_point(data = o2_df,aes(x = theta0, y = theta1,color = name2),show.legend = TRUE ) +
+        geom_point(data = o3_df,aes(x = theta0, y = theta1,color = name3),show.legend = TRUE ) +
+        geom_point(data = o4_df,aes(x = theta0, y = theta1,color = name4),show.legend = TRUE ) +
+        geom_point(data = theta.star_df,aes(x = theta0, y = theta1,color = "Actual Theta"),show.legend = TRUE)+
+        labs(x = expression(theta[0]),
+            y = expression(theta[1]),
+            title = "Contour Plot of Loss Function",
+            color = "Legend") +
+        scale_x_continuous(limits = c(theta0_lower, theta0_upper)) +
+        scale_y_continuous(limits = c(theta1_lower, theta1_upper)) +
+        scale_color_manual(values = setNames(c("blue","red","yellow","pink","green"), c(name1,name2,name3,name4, "Actual Theta")))
+        #theme_classic()
+}
 ##################
 # HYPERPARAMETERS 
 ##################
@@ -115,7 +207,7 @@ num_iters <- 300 #number of iterations
 alpha <- 0.01 #learning rate
 gamma <- 0.02 #momentum coefficient
 theta_initial <- matrix(c(0,0), nrow=2)
-batch_size <- length(y)
+batch_size <- 1#length(y)
 theta0_lower <- -1
 theta1_lower <- -1
 theta0_upper <- 3.5
@@ -143,7 +235,8 @@ vgd <- function(X,y,theta,batch_size, num_iters,alpha){
 #batch_size <- 1
 #num_iters <- 100
 vgd_output <- vgd(X,y,theta_initial,batch_size,num_iters,alpha)
-
+vgd_gd <- vgd(X,y,theta_initial,length(y),num_iters,alpha)
+vgd_sgd <- vgd(X,y,theta_initial,1,num_iters,alpha)
 #PLOTs
 #xy_plot(vgd_output$theta_history,vgd_output$theta)
 #contour_plotting(vgd_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper)
@@ -171,20 +264,24 @@ momentum_gd <- function(X,y,theta,batch_size, num_iters,alpha,gamma){
     end <- Sys.time()
     return(list(theta = theta,theta_history = theta_history, time = end-start))
 }
-gamma <- 0.02
+gamma <- 0.3
 #batch_size <- 1
 momentum_output <- momentum_gd(X,y,theta_initial,batch_size,num_iters,alpha,gamma)
-
+momentum_gd1 <- momentum_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma) 
+momentum_sgd1 <- momentum_gd(X,y,theta_initial,1,num_iters,alpha,gamma) 
 #PLOTS
 #xy_plot(momentum_output$theta_history,momentum_output$theta)
-#contour_plotting(momentum_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper)
+#contour_plotting(momentum_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper,"Momentum")
 #sgd1 <- momentum_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
 #gd1 <- momentum_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Momentum")
+#vanillavsopti_contour_plotting(vgd_output,momentum_output,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"Momentum","SGD")
+#any2_contour_plotting(vgd_sgd,momentum_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Momentum SGD")
+#any4_contour_plotting(vgd_gd,vgd_sgd,momentum_gd1,momentum_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla GD", "Vanilla SGD","Momentum GD", "Momentum SGD")
+
 ##################
 # NAG- NESTEROV ACCELERATED GRADIENT
 ##################
-
 nag_gd <- function(X,y,theta,batch_size, num_iters,alpha,gamma){
     theta_history <- list(num_iters)
     theta_history[[1]] <- theta
@@ -208,7 +305,7 @@ nag_output <- nag_gd(X,y,theta_initial,batch_size,num_iters,alpha,gamma)
 
 #PLOTS
 #xy_plot(nag_output$theta_history,nag_output$theta)
-#contour_plotting(nag_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper)
+contour_plotting(nag_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper)
 #gd1 <- nag_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma)
 #sgd1 <- nag_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"NAG")
