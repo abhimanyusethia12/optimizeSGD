@@ -144,7 +144,8 @@ momentum_gd <- function(xx, num_iters, alpha,gamma){
 gamma <- 0.3
 momentum_output <- momentum_gd(xx_initial,num_iters,alpha,gamma)
 #contour_plotting(momentum_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
-any2_contour_plotting(vgd_output$xx_history,momentum_output$xx_history,x1_lower,x1_upper,x2_lower,x2_upper,"Vanilla GD","Momentum GD")
+#any2_contour_plotting(vgd_output$xx_history,momentum_output$xx_history,x1_lower,x1_upper,x2_lower,x2_upper,"Vanilla GD","Momentum GD")
+
 ##################
 # NAG- NESTEROV ACCELERATED GRADIENT
 ##################

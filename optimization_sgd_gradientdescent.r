@@ -62,11 +62,8 @@ contour_plotting <- function(theta_history, theta0_lower, theta0_upper, theta1_l
     windows()
     ggplot(theta_grid, aes(theta0, theta1, z = loss)) +
         geom_contour(color = "red") +
-        geom_point(data = theta_history_df,aes(x = theta0, y = theta1,color = algo_name),show.legend = TRUE ) +
+        geom_point(data = theta_history_df,aes(x = theta0, y = theta1,color = algo_name),show.legend = TRUE) +
         geom_point(data=theta.star_df,aes(x = theta0, y = theta1,color = "Actual Theta"),show.legend = TRUE)+
-        #geom_label_repel(data = theta_history_df,
-                    #aes(label = 1:nrow(theta_history_df)),
-                    #color = "blue") +
         labs(x = expression(theta[0]),
             y = expression(theta[1]),
             title = "Contour Plot of Loss Function",
@@ -207,7 +204,7 @@ num_iters <- 300 #number of iterations
 alpha <- 0.01 #learning rate
 gamma <- 0.02 #momentum coefficient
 theta_initial <- matrix(c(0,0), nrow=2)
-batch_size <- 1#length(y)
+batch_size <- length(y)
 theta0_lower <- -1
 theta1_lower <- -1
 theta0_upper <- 3.5
@@ -299,16 +296,18 @@ nag_gd <- function(X,y,theta,batch_size, num_iters,alpha,gamma){
     end <- Sys.time()
     return(list(theta = theta,theta_history = theta_history, time = end-start))
 }
-gamma <- 0.02
+gamma <- 0.3
 #batch_size <- length(y)
 nag_output <- nag_gd(X,y,theta_initial,batch_size,num_iters,alpha,gamma)
-
+nag_sgd <- nag_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
+nag_gd1 <- nag_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma)
 #PLOTS
 #xy_plot(nag_output$theta_history,nag_output$theta)
-contour_plotting(nag_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper)
+#contour_plotting(nag_gd1$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper,"NAG")
 #gd1 <- nag_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma)
 #sgd1 <- nag_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
-#gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"NAG")
+#gdvssgd_contour_plotting(gd_output = nag_gd1,sgd_output = nag_sgd,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"NAG")
+#any2_contour_plotting(vgd_sgd,nag_sgd,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "NAG SGD")
 
 ##################
 # ADAGRAD
@@ -335,7 +334,7 @@ adagrad <- function(X,y,theta,batch_size, num_iters,alpha,epsilon){
     return(list(theta = theta,theta_history = theta_history, time = end-start))
 }
 alpha <- 0.3
-epsilon <- 1
+epsilon <- 1e-8
 #num_iters <- 100
 #batch_size <- length(y)
 adagrad_output <- adagrad(X,y,theta_initial,batch_size,num_iters,alpha,epsilon)
@@ -345,9 +344,10 @@ adagrad_output <- adagrad(X,y,theta_initial,batch_size,num_iters,alpha,epsilon)
 #theta0_lower <- -5
 #theta1_lower <- 5
 #contour_plotting(adagrad_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper,"Adagrad")
-#gd1 <- adagrad(X,y,theta_initial,length(y),num_iters,alpha,epsilon)
-#sgd1 <- adagrad(X,y,theta_initial,1,num_iters,alpha,epsilon)
-#gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Adagrad")
+#adagrad_gd1 <- adagrad(X,y,theta_initial,length(y),num_iters,alpha,epsilon)
+#adagrad_sgd1 <- adagrad(X,y,theta_initial,1,num_iters,alpha,epsilon)
+#gdvssgd_contour_plotting(gd_output = adagrad_gd1,sgd_output = adagrad_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Adagrad")
+#any2_contour_plotting(vgd_sgd,adagrad_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Adagrad SGD")
 
 ##################
 # RMSPROP
@@ -364,8 +364,8 @@ rmsprop <- function(X,y,theta,batch_size, num_iters, alpha, epsilon, gamma){
         gradient <- loss_grad(X_batch,y_batch,theta)    
         update <- matrix(c(rep(0,dim(X)[1])),nrow=dim(X)[1])
         for(j in 1:length(gradient)){
-            update[j] <- alpha*gradient[j]/(sqrt(G[j]+epsilon))
             G[j] <- gamma*G[j] + (1-gamma)*(gradient[j])^2
+            update[j] <- alpha*gradient[j]/(sqrt(G[j]+epsilon))
         }
         theta <- theta - update
         theta_history[[i]] <- theta
@@ -374,8 +374,8 @@ rmsprop <- function(X,y,theta,batch_size, num_iters, alpha, epsilon, gamma){
     return(list(theta = theta,theta_history = theta_history, time = end-start))
 }
 
-alpha <- 0.01
-epsilon <- 1
+alpha <- 0.1
+epsilon <- 1e-8
 gamma <- 0.9
 #num_iters <- 100
 #batch_size <- length(y)
@@ -389,6 +389,7 @@ rmsprop_output <- rmsprop(X,y,theta_initial,batch_size,num_iters,alpha,epsilon,g
 #gd1 <- rmsprop(X,y,theta_initial,length(y),num_iters,alpha,epsilon,gamma)
 #sgd1 <- rmsprop(X,y,theta_initial,1,num_iters,alpha,epsilon,gamma)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"RMSProp")
+#any2_contour_plotting(vgd_sgd,sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "RMSProp SGD")
 
 ##################
 # ADAM
@@ -407,9 +408,10 @@ adam <- function(X,y,theta,batch_size, num_iters, alpha, epsilon, beta1, beta2){
         update <- matrix(c(rep(0,dim(X)[1])),nrow=dim(X)[1])
 
         for(j in 1:length(gradient)){
-            update[j] <- alpha*m[j]/(sqrt(v[j]+epsilon))
             v[j] <- beta2*v[j] + (1-beta2)*(gradient[j])^2
             m[j] <- beta1*m[j] + (1-beta1)*(gradient[j])
+            update[j] <- alpha*m[j]/(sqrt(v[j]+epsilon))
+            
         }
         theta <- theta - update
         theta_history[[i]] <- theta
@@ -418,8 +420,8 @@ adam <- function(X,y,theta,batch_size, num_iters, alpha, epsilon, beta1, beta2){
     return(list(theta = theta,theta_history = theta_history, time = end-start))
 }
 
-alpha <- 0.01
-epsilon <- 1
+alpha <- 0.015
+epsilon <- 1e-8
 beta1 <- 0.9
 beta2 <- 0.999
 #batch_size <- length(y)
@@ -429,9 +431,10 @@ adam_output <- adam(X,y,theta_initial,batch_size,num_iters,alpha,epsilon,beta1, 
 #PLOTS
 #xy_plot(adam_output$theta_history,adam_output$theta)
 #contour_plotting(adam_output$theta_history,theta0_lower, theta0_upper,theta1_lower,theta1_upper)
-#gd1 <- adam(X,y,theta_initial,length(y),num_iters,alpha,epsilon,beta1, beta2)
-#sgd1 <- adam(X,y,theta_initial,1,num_iters,alpha,epsilon,beta1, beta2)
-#gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Adam")
+#adam_gd1 <- adam(X,y,theta_initial,length(y),num_iters,alpha,epsilon,beta1, beta2)
+#adam_sgd1 <- adam(X,y,theta_initial,1,num_iters,alpha,epsilon,beta1, beta2)
+#gdvssgd_contour_plotting(gd_output = adam_gd1,sgd_output = adam_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Adam")
+#any2_contour_plotting(vgd_sgd,adam_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Adam SGD")
 
 ##################
 # ADAM - BIAS CORRECTED
@@ -450,9 +453,9 @@ corrected_adam <- function(X,y,theta,batch_size, num_iters, alpha, epsilon, beta
         update <- matrix(c(rep(0,dim(X)[1])),nrow=dim(X)[1])
 
         for(j in 1:length(gradient)){
-            update[j] <- alpha*(m[j]/(1-beta1))/(sqrt((v[j]/(1-beta2))+epsilon))
             v[j] <- beta2*v[j] + (1-beta2)*(gradient[j])^2
             m[j] <- beta1*m[j] + (1-beta1)*(gradient[j])
+            update[j] <- alpha*(m[j]/(1-beta1))/(sqrt((v[j]/(1-beta2))+epsilon))
         }
         theta <- theta - update
         theta_history[[i]] <- theta
@@ -461,8 +464,8 @@ corrected_adam <- function(X,y,theta,batch_size, num_iters, alpha, epsilon, beta
     return(list(theta = theta,theta_history = theta_history, time = end-start))
 }
 
-alpha <- 0.01
-epsilon <- 1
+alpha <- 0.015
+epsilon <- 1e-8
 beta1 <- 0.9
 beta2 <- 0.999
 #batch_size <- 1
@@ -475,6 +478,7 @@ corrected_adam_output <- corrected_adam(X,y,theta_initial,batch_size,num_iters,a
 #gd1 <- corrected_adam(X,y,theta_initial,length(y),num_iters,alpha,epsilon,beta1, beta2)
 #sgd1 <- corrected_adam(X,y,theta_initial,1,num_iters,alpha,epsilon,beta1, beta2)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Corrected Adam")
+#any2_contour_plotting(vgd_sgd,sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Corrected Adam SGD")
 
 ##################
 # COMPILED RESULTS
