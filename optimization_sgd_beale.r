@@ -163,7 +163,7 @@ nag_gd <- function(xx, num_iters, alpha,gamma){
     end <- Sys.time()
     return(list(xx = xx,xx_history = xx_history, time = end-start))
 }
-gamma <- 0.02
+gamma <- 0.3
 nag_output <- nag_gd(xx_initial,num_iters,alpha,gamma)
 #contour_plotting(nag_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
 
@@ -190,14 +190,14 @@ adagrad <- function(xx, num_iters, alpha,epsilon) {
 }
 
 alpha <- 0.3
-epsilon <- 1
+epsilon <- 1e-8
 adagrad_output <- adagrad(xx_initial,num_iters,alpha,epsilon)
 #contour_plotting(adagrad_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper,"Adagrad")
 
 ##################
 # RMSPROP
 ##################
-rmsprop <- function(xx, num_iters, alpha,epsilon) {
+rmsprop <- function(xx, num_iters, alpha,epsilon, gamma) {
     xx_history <- list(num_iters)
     xx_history[[1]] <- xx
     G <- c(rep(0,length(xx)))
@@ -206,8 +206,8 @@ rmsprop <- function(xx, num_iters, alpha,epsilon) {
         gradient <- beale_grad(xx)
         update <- c(rep(0,length(xx)))
         for(j in 1:length(gradient)){
-            update[j] <- alpha*gradient[j]/sqrt(G[j]+epsilon)
             G[j] <- gamma*G[j] + (1-gamma)*(gradient[j])^2
+            update[j] <- alpha*gradient[j]/sqrt(G[j]+epsilon)
         }
         xx <- xx - update
         xx_history[[i]] <- xx
@@ -215,9 +215,10 @@ rmsprop <- function(xx, num_iters, alpha,epsilon) {
     end <- Sys.time()
     return(list(xx = xx,xx_history = xx_history, time = end-start))
 }
-alpha <- 0.01
-epsilon <- 1
-rmsprop_output <- rmsprop(xx_initial,num_iters,alpha,epsilon)
+alpha <- 0.1
+epsilon <- 1e-8
+gamma <- 0.9
+rmsprop_output <- rmsprop(xx_initial,num_iters,alpha,epsilon,gamma)
 #contour_plotting(rmsprop_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
 
 ##################
@@ -233,9 +234,9 @@ adam <- function(xx, num_iters, alpha,epsilon,beta1, beta2) {
         gradient <- beale_grad(xx)
         update <- c(rep(0,length(xx)))
         for(j in 1:length(gradient)){
-            update[j] <- alpha*m[j]/sqrt(v[j]+epsilon)
             v[j] <- beta2*v[j] + (1-beta2)*(gradient[j])^2
             m[j] <- beta1*m[j] + (1-beta1)*(gradient[j])
+            update[j] <- alpha*m[j]/sqrt(v[j]+epsilon)
         }
         xx <- xx - update
         xx_history[[i]] <- xx
@@ -243,8 +244,8 @@ adam <- function(xx, num_iters, alpha,epsilon,beta1, beta2) {
     end <- Sys.time()
     return(list(xx = xx,xx_history = xx_history, time = end-start))
 }
-alpha <- 0.01
-epsilon <- 1
+alpha <- 0.015
+epsilon <- 1e-8
 beta1 <- 0.9
 beta2 <- 0.999
 adam_output <- adam(xx_initial,num_iters,alpha,epsilon,beta1,beta2)
@@ -263,9 +264,9 @@ corrected_adam <- function(xx, num_iters, alpha,epsilon,beta1, beta2) {
         gradient <- beale_grad(xx)
         update <- c(rep(0,length(xx)))
         for(j in 1:length(gradient)){
-            update[j] <- alpha*(m[j]/(1-beta1))/sqrt((v[j]/(1-beta2))+epsilon)
             v[j] <- beta2*v[j] + (1-beta2)*(gradient[j])^2
             m[j] <- beta1*m[j] + (1-beta1)*(gradient[j])
+            update[j] <- alpha*(m[j]/(1-beta1))/sqrt((v[j]/(1-beta2))+epsilon)
         }
         xx <- xx - update
         xx_history[[i]] <- xx
@@ -274,12 +275,12 @@ corrected_adam <- function(xx, num_iters, alpha,epsilon,beta1, beta2) {
     return(list(xx = xx,xx_history = xx_history, time = end-start))
 }
 
-alpha <- 0.01
-epsilon <- 1
+alpha <- 0.015
+epsilon <- 1e-8
 beta1 <- 0.9
 beta2 <- 0.999
 corrected_adam_output <- corrected_adam(xx_initial,num_iters,alpha,epsilon,beta1,beta2)
-#contour_plotting(corrected_adam_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
+contour_plotting(corrected_adam_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
 
 ##################
 # COMPILED RESULTS
