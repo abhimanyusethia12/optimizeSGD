@@ -2,7 +2,7 @@ library(ggplot2)
 ##################
 # HYPERPARAMETERS
 ##################
-xx.star = matrix(c(3,0.5)) #true weights 
+xx.star = matrix(c(3,0.5)) #true weights
 x1_lower <- -1
 x1_upper <- 3
 x2_lower <- -1
