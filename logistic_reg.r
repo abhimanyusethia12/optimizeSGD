@@ -4,7 +4,7 @@ library(pracma)
 ##################
 # GENERATING DATA
 ##################
-N <- 10 #sample size
+N <- 1e7 #sample size
 d <- 1 # number of features
 X <- rbind(matrix(rnorm(N*d), nrow=d, ncol=N), c(rep(1,N))) #x = (d+1)*N matrix - first value is randomly sampled from N(0,1), second value is 1 (intercept)
 #theta.star = matrix(c(3,2)) #true weights 
@@ -34,9 +34,9 @@ loss_grad <- function(X,y,theta){
 # HYPERPARAMETERS 
 ##################
 theta_initial <- matrix(rep(1,d+1), nrow=d+1)
-batch_size <- length(y)
+batch_size <- 1#length(y)
 iters_sample <- 50
-iters<- as.integer(logspace(1, 6, n=iters_sample))
+iters<- as.integer(logspace(1, 4, n=iters_sample))
 
 
 vgd <- function(X,y,theta,batch_size,alpha,iters){
@@ -151,16 +151,16 @@ for(i in 1:iters_sample){
 }
 
 windows()
-#plot(log10(iters),log10(as.numeric(losses_0.01)),pch = 16, col = "blue",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
-points(log10(iters),log10(as.numeric(losses_0.01_avg)), pch = 16, col = "violet")
-plot(log10(iters),log10(as.numeric(losses_0.1)),pch = 16, col = "red",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
-#points(log10(iters),log10(as.numeric(losses_0.1)), pch = 16, col = "red")
-points(log10(iters),log10(as.numeric(losses_0.1_avg)), pch = 16, col = "maroon")
-#points(log10(iters),log10(as.numeric(losses_0.1varlr)), pch = 16, col = "yellow")
-#points(log10(iters),log10(as.numeric(losses_0.1varlr_avg)), pch = 16, col = "green")
-points(log10(iters),log10(as.numeric(losses_0.1rr)), pch = 16, col = "yellow")
-points(log10(iters),log10(as.numeric(losses_0.1rr_avg)), pch = 16, col = "green")
+plot(log10(iters),log10(as.numeric(losses_0.01)),pch = 16, col = "red",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
+points(log10(iters),log10(as.numeric(losses_0.01_avg)), pch = 16, col = "blue")
+#plot(log10(iters),log10(as.numeric(losses_0.1)),pch = 16, col = "red",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
+points(log10(iters),log10(as.numeric(losses_0.1)), pch = 16, col = "green")
+points(log10(iters),log10(as.numeric(losses_0.1_avg)), pch = 16, col = "yellow")
+points(log10(iters),log10(as.numeric(losses_0.1varlr)), pch = 16, col = "purple")
+points(log10(iters),log10(as.numeric(losses_0.1varlr_avg)), pch = 16, col = "orange")
+points(log10(iters),log10(as.numeric(losses_0.1rr)), pch = 16, col = "pink")
+points(log10(iters),log10(as.numeric(losses_0.1rr_avg)), pch = 16, col = "brown")
 
 #legend("topright", legend = c("Alpha = 0.01", "Alpha = 0.1", "Alpha = 0.1/k","Alpha = 0.01 Avg", "Alpha = 0.1 Avg", "Alpha = 0.1/k Avg"), col = c("blue", "red","yellow","violet","maroon","green"), pch = 16)
-#legend("topright", legend = c("Alpha = 0.01", "Alpha = 0.1", "Alpha = 0.01 Avg", "Alpha = 0.1 Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c("blue", "red","violet","maroon", "yellow", "green"), pch = 16)
-legend("bottomleft", legend = c("Alpha = 0.1", "Alpha = 0.1 Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c( "red","maroon", "yellow", "green"), pch = 16)
+legend("bottomleft", legend = c("Alpha = 0.01", "Alpha = 0.01 Avg", "Alpha = 0.1", "Alpha = 0.1 Avg","Alpha = 0.1/k","Alpha = 0.1/k Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c("blue", "red","green","yellow", "purple", "orange","pink","brown"), pch = 16)
+#legend("bottomleft", legend = c("Alpha = 0.1", "Alpha = 0.1 Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c( "red","maroon", "yellow", "green"), pch = 16)
