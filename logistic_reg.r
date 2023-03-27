@@ -4,13 +4,15 @@ library(pracma)
 ##################
 # GENERATING DATA
 ##################
-N <- 1e7 #sample size
+set.seed(1)
+N <- 1e4 #sample size
 d <- 1 # number of features
 X <- rbind(matrix(rnorm(N*d), nrow=d, ncol=N), c(rep(1,N))) #x = (d+1)*N matrix - first value is randomly sampled from N(0,1), second value is 1 (intercept)
 #theta.star = matrix(c(3,2)) #true weights 
 theta.star = matrix(sample(1:10,d+1,replace = TRUE))
-prob <- sigmoid(t(theta.star) %*% X)
+prob <- sigmoid(t(theta.star) %*% X + rnorm(N, sd = 2))
 y <- rbinom(N,1, prob)
+ glm(y ~ t(X) - 1, family = "binomial")
 
 ##################
 # HELPER FUNCTIONS
@@ -20,8 +22,13 @@ sigmoid <- function(z) {
 }
 
 cost <- function(X, y, theta) {
-    g <- plogis(t(theta) %*% X)
-    (1/length(y))*sum((-y*log(g)) - ((1-y)*log(1-g)))
+    foo <- t(theta) %*% X
+    g <- plogis(foo)
+    # temp <- log(1 + exp(foo))
+
+    (1/length(y))*sum( - y*foo + log(1 + exp(foo)))
+    # (1/length(y))*sum( - y*foo - log(1 - g))
+    # (1/length(y))*sum((-y*log(g)) - ((1-y)*log(1-g)))
 }
 cost(X,y, theta.star)
 loss_grad <- function(X,y,theta){
@@ -29,14 +36,14 @@ loss_grad <- function(X,y,theta){
     delta <- X %*% t(error) / length(y)
     delta
 }
-
+loss_grad(X, y, theta.star)
 ##################
 # HYPERPARAMETERS 
 ##################
 theta_initial <- matrix(rep(1,d+1), nrow=d+1)
 batch_size <- 1#length(y)
 iters_sample <- 50
-iters<- as.integer(logspace(1, 4, n=iters_sample))
+iters <- as.integer(logspace(1, 4, n=iters_sample))
 
 
 vgd <- function(X,y,theta,batch_size,alpha,iters){
@@ -106,19 +113,24 @@ vgd_richardsonromberg <- function(X,y,theta_initial,batch_size,alpha,iters){
     theta_2gamma_avg <- theta_initial
     index <- 1
     #start <- Sys.time()
-    for(i in 1:iters[length(iters)]){
+    for(i in 1:iters[length(iters)])
+    {
         sample_indices <- sample(1:length(y), size = batch_size, replace = TRUE)
         X_batch <- X[,sample_indices]
         y_batch <- y[sample_indices]
+
         gradient <- loss_grad(X_batch,y_batch,theta_gamma)
         theta_gamma <- theta_gamma - alpha *gradient
         theta_gamma_avg <- (theta_gamma_avg*i + theta_gamma)/i
+
         gradient <- loss_grad(X_batch,y_batch,theta_2gamma)
         theta_2gamma <- theta_2gamma - 2*alpha *gradient
         theta_2gamma_avg <- (theta_2gamma_avg*i + theta_2gamma)/i
-        if(i %in% iters){
-            theta_history[[index]] <- theta_2gamma - theta_gamma
-            theta_averaged_history[[index]] <- theta_2gamma_avg - theta_gamma_avg
+
+        if(i %in% iters)
+        {
+            theta_history[[index]] <- 2*theta_gamma - theta_2gamma
+            theta_averaged_history[[index]] <- 2*theta_gamma_avg - theta_2gamma_avg
             index <- index +1
         }
     }
@@ -151,7 +163,8 @@ for(i in 1:iters_sample){
 }
 
 windows()
-plot(log10(iters),log10(as.numeric(losses_0.01)),pch = 16, col = "red",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
+plot(log10(iters),log10(as.numeric(losses_0.01)),pch = 16, col = "red",xlab = "log_{10}k", 
+    ylab = "log_{10}loss", main="Scatter Plots for Various LR")
 points(log10(iters),log10(as.numeric(losses_0.01_avg)), pch = 16, col = "blue")
 #plot(log10(iters),log10(as.numeric(losses_0.1)),pch = 16, col = "red",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
 points(log10(iters),log10(as.numeric(losses_0.1)), pch = 16, col = "green")
