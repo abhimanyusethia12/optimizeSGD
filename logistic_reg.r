@@ -10,9 +10,9 @@ d <- 1 # number of features
 X <- rbind(matrix(rnorm(N*d), nrow=d, ncol=N), c(rep(1,N))) #x = (d+1)*N matrix - first value is randomly sampled from N(0,1), second value is 1 (intercept)
 #theta.star = matrix(c(3,2)) #true weights 
 theta.star = matrix(sample(1:10,d+1,replace = TRUE))
-prob <- sigmoid(t(theta.star) %*% X + rnorm(N, sd = 2))
+prob <- sigmoid(t(theta.star) %*% X + rnorm(N, sd = 2))#sigmoid(t(theta.star) %*% X + rnorm(N, sd = 2))
 y <- rbinom(N,1, prob)
- glm(y ~ t(X) - 1, family = "binomial")
+#glm(y ~ t(X) - 1, family = "binomial")
 
 ##################
 # HELPER FUNCTIONS
@@ -40,17 +40,20 @@ loss_grad(X, y, theta.star)
 ##################
 # HYPERPARAMETERS 
 ##################
-theta_initial <- matrix(rep(1,d+1), nrow=d+1)
+theta_initial <- matrix(rep(1,d+1), nrow=d+1) #theta is initialized
 batch_size <- 1#length(y)
-iters_sample <- 50
-iters <- as.integer(logspace(1, 4, n=iters_sample))
+iters_sample <- 50 #number of points plotted
+iters <- as.integer(logspace(1, 4, n=iters_sample)) #equidistant points taken on log scale for plotting
 
 
 vgd <- function(X,y,theta,batch_size,alpha,iters){
     theta_history <- list()
     theta_averaged_history <- list()
     theta <- theta_initial
+    theta_sum <- 0
     theta_averaged <- theta_initial
+    losses_history <- list()
+    losses_averaged_history <- list()
     index <- 1
     #start <- Sys.time()
     for(i in 1:iters[length(iters)]){
@@ -59,29 +62,30 @@ vgd <- function(X,y,theta,batch_size,alpha,iters){
         y_batch <- y[sample_indices]
         gradient <- loss_grad(X_batch,y_batch,theta)
         theta <- theta - alpha *gradient
-        theta_averaged <- (theta_averaged*(i-1)+theta)/i
+        #theta_averaged <- (theta_averaged*(i-1)+theta)/i
+        theta_sum <- theta_sum + theta
+        theta_averaged <- theta_sum/i
         if(i %in% iters){
             theta_history[[index]] <- theta
             theta_averaged_history[[index]] <- theta_averaged
+            losses_history[index] <- cost(X,y,theta)
+            losses_averaged_history[index] <- cost(X,y,theta_averaged)
             index <- index +1
         }
     }
-    return(list(nonaveraged = theta_history, averaged = theta_averaged_history))
+
+    return(list(nonaveraged = theta_history, averaged = theta_averaged_history, losses_nonaveraged = losses_history, losses_averaged = losses_averaged_history))
 }
 
-vgd_output <- vgd(X,y,theta_initial,batch_size,0.01,iters)
-theta_0.01_nonavg <- vgd_output$nonaveraged
-theta_0.01_avg <- vgd_output$averaged
-vgd_output <- vgd(X,y,theta_initial,batch_size,0.1,iters)
-theta_0.1_nonavg <- vgd_output$nonaveraged
-theta_0.1_avg <- vgd_output$averaged
 
 vgd_variablelr <- function(X,y,theta,batch_size,alpha,iters){
     theta_history <- list()
     theta <- theta_initial
     theta_averaged_history <- list()
     theta_averaged <- theta_initial
-
+    theta_sum <- 0
+    losses_history <- list()
+    losses_averaged_history <- list()
     index <- 1
     #start <- Sys.time()
     for(i in 1:iters[length(iters)]){
@@ -89,28 +93,36 @@ vgd_variablelr <- function(X,y,theta,batch_size,alpha,iters){
         X_batch <- X[,sample_indices]
         y_batch <- y[sample_indices]
         gradient <- loss_grad(X_batch,y_batch,theta)
-        theta <- theta - alpha *gradient/sqrt(i)
-        theta_averaged <- (theta_averaged*(i-1)+theta)/i
+        theta <- theta - alpha*gradient/sqrt(i)
+        theta_sum <- theta_sum + theta
+        theta_averaged <- theta_sum/i
+        #theta_averaged <- (theta_averaged*(i-1)+theta)/i
         if(i %in% iters){
             theta_history[[index]] <- theta
+            losses_history[index] <- cost(X,y,theta)
             theta_averaged_history[[index]] <- theta_averaged
+            losses_averaged_history[index] <- cost(X,y,theta_averaged)
             index <- index +1
         }
         else{}
     }
-    return(list(nonaveraged = theta_history, averaged = theta_averaged_history))
+    return(list(nonaveraged = theta_history, averaged = theta_averaged_history, losses_nonaveraged = losses_history, losses_averaged = losses_averaged_history))
 }
-theta_0.1varlr_output <- vgd(X,y,theta_initial,batch_size,0.1,iters)
-theta_0.1varlr_nonavg <- theta_0.1varlr_output$nonaveraged
-theta_0.1varlr_avg <- theta_0.1varlr_output$averaged
 
 vgd_richardsonromberg <- function(X,y,theta_initial,batch_size,alpha,iters){
     theta_history <- list()
     theta_averaged_history <- list()
+    losses_history <- list()
+    losses_averaged_history <- list()
     theta_gamma <- theta_initial
+    theta_gamma_sum <- 0
     theta_2gamma <- theta_initial
+    theta_2gamma_sum <- 0 
     theta_gamma_avg <- theta_initial
     theta_2gamma_avg <- theta_initial
+
+    theta_rr_sum <- 0
+    theta_rr_avg <- theta_initial
     index <- 1
     #start <- Sys.time()
     for(i in 1:iters[length(iters)])
@@ -121,59 +133,113 @@ vgd_richardsonromberg <- function(X,y,theta_initial,batch_size,alpha,iters){
 
         gradient <- loss_grad(X_batch,y_batch,theta_gamma)
         theta_gamma <- theta_gamma - alpha *gradient
-        theta_gamma_avg <- (theta_gamma_avg*i + theta_gamma)/i
+        theta_gamma_sum <- theta_gamma_sum + theta_gamma
+        theta_gamma_avg <- theta_gamma_sum/i
+        #theta_gamma_avg <- (theta_gamma_avg*i + theta_gamma)/i
 
         gradient <- loss_grad(X_batch,y_batch,theta_2gamma)
         theta_2gamma <- theta_2gamma - 2*alpha *gradient
-        theta_2gamma_avg <- (theta_2gamma_avg*i + theta_2gamma)/i
+        theta_2gamma_sum <- theta_2gamma_sum + theta_2gamma
+        theta_2gamma_avg <- theta_2gamma_sum/i
+        #theta_2gamma_avg <- (theta_2gamma_avg*i + theta_2gamma)/i
 
+        theta_rr <- 2*theta_gamma_avg - theta_2gamma_avg
+        theta_rr_sum <- theta_rr_sum + theta_rr
+        theta_rr_avg <- theta_rr_sum/i
         if(i %in% iters)
         {
-            theta_history[[index]] <- 2*theta_gamma - theta_2gamma
-            theta_averaged_history[[index]] <- 2*theta_gamma_avg - theta_2gamma_avg
+            theta_history[[index]] <- theta_rr
+            theta_averaged_history[[index]] <- theta_rr_avg
+            losses_history[index] <- cost(X,y,theta_rr)
+            losses_averaged_history[index] <- cost(X,y,theta_rr_avg)
             index <- index +1
         }
     }
-    return (list(nonaveraged = theta_history, averaged = theta_averaged_history))
+    return (list(nonaveraged = theta_history, averaged = theta_averaged_history,losses_nonaveraged = losses_history,losses_averaged = losses_averaged_history))
 }
 
-theta_rr_output <- vgd_richardsonromberg(X,y,theta_initial,batch_size,0.1,iters)
-theta_0.1rr_nonavg <- theta_rr_output$nonaveraged
-theta_0.1rr_avg <- theta_rr_output$averaged
+vgd_vlr_richardsonromberg <- function(X,y,theta_initial,batch_size,alpha,iters){
+    theta_history <- list()
+    theta_averaged_history <- list()
+    losses_history <- list()
+    losses_averaged_history <- list()
+    theta_gamma <- theta_initial
+    theta_gamma_sum <- 0
+    theta_2gamma <- theta_initial
+    theta_2gamma_sum <- 0 
+    theta_gamma_avg <- theta_initial
+    theta_2gamma_avg <- theta_initial
 
+    theta_rr_sum <- 0
+    theta_rr_avg <- theta_initial
+    index <- 1
+    #start <- Sys.time()
+    for(i in 1:iters[length(iters)])
+    {
+        sample_indices <- sample(1:length(y), size = batch_size, replace = TRUE)
+        X_batch <- X[,sample_indices]
+        y_batch <- y[sample_indices]
+
+        gradient <- loss_grad(X_batch,y_batch,theta_gamma)
+        theta_gamma <- theta_gamma - alpha *gradient/sqrt(i)
+        theta_gamma_sum <- theta_gamma_sum + theta_gamma
+        theta_gamma_avg <- theta_gamma_sum/i
+        #theta_gamma_avg <- (theta_gamma_avg*i + theta_gamma)/i
+
+        gradient <- loss_grad(X_batch,y_batch,theta_2gamma)
+        theta_2gamma <- theta_2gamma - 2*alpha *gradient/sqrt(i)
+        theta_2gamma_sum <- theta_2gamma_sum + theta_2gamma
+        theta_2gamma_avg <- theta_2gamma_sum/i
+        #theta_2gamma_avg <- (theta_2gamma_avg*i + theta_2gamma)/i
+
+        theta_rr <- 2*theta_gamma_avg - theta_2gamma_avg
+        theta_rr_sum <- theta_rr_sum + theta_rr
+        theta_rr_avg <- theta_rr_sum/i
+        if(i %in% iters)
+        {
+            theta_history[[index]] <- theta_rr
+            theta_averaged_history[[index]] <- theta_rr_avg
+            losses_history[index] <- cost(X,y,theta_rr)
+            losses_averaged_history[index] <- cost(X,y,theta_rr_avg)
+            index <- index +1
+        }
+    }
+    return (list(nonaveraged = theta_history, averaged = theta_averaged_history,losses_nonaveraged = losses_history,losses_averaged = losses_averaged_history))
+}
 
 ##PLOTTING
-losses_0.01 <- list()
-losses_0.1 <- list()
-losses_0.1varlr <- list()
-losses_0.01_avg <- list()
-losses_0.1_avg <- list()
-losses_0.1varlr_avg <- list()
-losses_0.1rr <- list()
-losses_0.1rr_avg <- list()
-for(i in 1:iters_sample){
-    losses_0.01[i] <- cost(X,y,theta_0.01_nonavg[[i]])
-    losses_0.1[i] <- cost(X,y,theta_0.1_nonavg[[i]]) 
-    losses_0.1varlr[i] <- cost(X,y,theta_0.1varlr_nonavg[[i]])
-    losses_0.01_avg[i] <- cost(X,y,theta_0.01_avg[[i]])
-    losses_0.1_avg[i] <- cost(X,y,theta_0.1_avg[[i]]) 
-    losses_0.1varlr_avg[i] <- cost(X,y,theta_0.1varlr_avg[[i]])
-    losses_0.1rr[i] <- cost(X,y,theta_0.1rr_nonavg[[i]])
-    losses_0.1rr_avg[i] <- cost(X,y,theta_0.1rr_avg[[i]])
-}
 
 windows()
-plot(log10(iters),log10(as.numeric(losses_0.01)),pch = 16, col = "red",xlab = "log_{10}k", 
+vgd_0.01 <- vgd(X,y,theta_initial,batch_size,0.01,iters)
+plot(log10(iters),log10(as.numeric(vgd_0.01$losses_nonaveraged)),pch = 16, col = "red",xlab = "log_{10}k", 
     ylab = "log_{10}loss", main="Scatter Plots for Various LR")
-points(log10(iters),log10(as.numeric(losses_0.01_avg)), pch = 16, col = "blue")
-#plot(log10(iters),log10(as.numeric(losses_0.1)),pch = 16, col = "red",xlab = "log_{10}k", ylab = "log_{10}loss", main="Scatter Plots for Various LR")
-points(log10(iters),log10(as.numeric(losses_0.1)), pch = 16, col = "green")
-points(log10(iters),log10(as.numeric(losses_0.1_avg)), pch = 16, col = "yellow")
-points(log10(iters),log10(as.numeric(losses_0.1varlr)), pch = 16, col = "purple")
-points(log10(iters),log10(as.numeric(losses_0.1varlr_avg)), pch = 16, col = "orange")
-points(log10(iters),log10(as.numeric(losses_0.1rr)), pch = 16, col = "pink")
-points(log10(iters),log10(as.numeric(losses_0.1rr_avg)), pch = 16, col = "brown")
+points(log10(iters),log10(as.numeric(vgd_0.01$losses_averaged)), pch = 16, col = "blue")
+
+vgd_0.1 <- vgd(X,y,theta_initial,batch_size,0.1,iters)
+plot(log10(iters),log10(as.numeric(vgd_0.1$losses_nonaveraged)), pch = 16, col = "green")
+points(log10(iters),log10(as.numeric(vgd_0.1$losses_averaged)), pch = 16, col = "yellow")
+
+varlr_0.01 <- vgd_variablelr(X,y,theta_initial,batch_size,0.01,iters)
+points(log10(iters),log10(as.numeric(varlr_0.01$losses_nonaveraged)), pch = 16, col = "purple")
+points(log10(iters),log10(as.numeric(varlr_0.01$losses_averaged)), pch = 16, col = "orange")
+
+varlr_0.1 <- vgd_variablelr(X,y,theta_initial,batch_size,2,iters)
+plot(log10(iters),log10(as.numeric(varlr_0.1$losses_nonaveraged)), pch = 16, col = "brown")
+points(log10(iters),log10(as.numeric(varlr_0.1$losses_averaged)), pch = 16, col = "pink")
+
+rr_0.1 <- vgd_richardsonromberg(X,y,theta_initial,batch_size,0.1,iters)
+points(log10(iters),log10(as.numeric(rr_0.1$losses_nonaveraged)), pch = 16, col = "pink")
+points(log10(iters),log10(as.numeric(rr_0.1$losses_averaged)), pch = 16, col = "brown")
 
 #legend("topright", legend = c("Alpha = 0.01", "Alpha = 0.1", "Alpha = 0.1/k","Alpha = 0.01 Avg", "Alpha = 0.1 Avg", "Alpha = 0.1/k Avg"), col = c("blue", "red","yellow","violet","maroon","green"), pch = 16)
-legend("bottomleft", legend = c("Alpha = 0.01", "Alpha = 0.01 Avg", "Alpha = 0.1", "Alpha = 0.1 Avg","Alpha = 0.1/k","Alpha = 0.1/k Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c("blue", "red","green","yellow", "purple", "orange","pink","brown"), pch = 16)
-#legend("bottomleft", legend = c("Alpha = 0.1", "Alpha = 0.1 Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c( "red","maroon", "yellow", "green"), pch = 16)
+legend("topright", legend = c("Alpha = 0.01", "Alpha = 0.01 Avg", "Alpha = 0.1", "Alpha = 0.1 Avg","Alpha = 0.1/k","Alpha = 0.1/k Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c("blue", "red","green","yellow", "purple", "orange","pink","brown"), pch = 16)
+    #legend("bottomleft", legend = c("Alpha = 0.1", "Alpha = 0.1 Avg", "Richardson with Alpha = 0.1","Richardson Averaged with Alpha = 0.1"), col = c( "red","maroon", "yellow", "green"), pch = 16)
+
+
+
+windows()
+plot(log10(iters),rep(theta.star[2],iters_sample),col="red")
+plot(log10(iters),sapply(theta_0.01_avg, function(x) x[[2]]))
+typeof(theta_0.01_avg)
+theta_0.01_avg
+theta.star[2]
