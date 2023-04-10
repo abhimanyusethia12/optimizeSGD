@@ -143,7 +143,7 @@ momentum_gd <- function(xx, num_iters, alpha,gamma){
 }
 gamma <- 0.3
 momentum_output <- momentum_gd(xx_initial,num_iters,alpha,gamma)
-#contour_plotting(momentum_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
+#contour_plotting(momentum_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper,"Momentum")
 #any2_contour_plotting(vgd_output$xx_history,momentum_output$xx_history,x1_lower,x1_upper,x2_lower,x2_upper,"Vanilla GD","Momentum GD")
 
 ##################
@@ -165,7 +165,7 @@ nag_gd <- function(xx, num_iters, alpha,gamma){
 }
 gamma <- 0.3
 nag_output <- nag_gd(xx_initial,num_iters,alpha,gamma)
-#contour_plotting(nag_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
+#contour_plotting(nag_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper,"NAG")
 
 ##################
 # ADAGRAD
@@ -219,7 +219,7 @@ alpha <- 0.1
 epsilon <- 1e-8
 gamma <- 0.9
 rmsprop_output <- rmsprop(xx_initial,num_iters,alpha,epsilon,gamma)
-#contour_plotting(rmsprop_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
+#contour_plotting(rmsprop_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper,"RMSProp")
 
 ##################
 # ADAM
@@ -249,7 +249,7 @@ epsilon <- 1e-8
 beta1 <- 0.9
 beta2 <- 0.999
 adam_output <- adam(xx_initial,num_iters,alpha,epsilon,beta1,beta2)
-#contour_plotting(adam_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
+#contour_plotting(adam_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper,"Adam")
 
 ##################
 # ADAM - BIAS CORRECTED
@@ -280,7 +280,7 @@ epsilon <- 1e-8
 beta1 <- 0.9
 beta2 <- 0.999
 corrected_adam_output <- corrected_adam(xx_initial,num_iters,alpha,epsilon,beta1,beta2)
-contour_plotting(corrected_adam_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper)
+#contour_plotting(corrected_adam_output$xx_history,x1_lower, x1_upper, x2_lower, x2_upper,"Corrected Adam")
 
 ##################
 # COMPILED RESULTS

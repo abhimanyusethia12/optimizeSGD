@@ -2,6 +2,7 @@ library(ggplot2)
 ##################
 # GENERATING DATA 
 ##################
+set.seed(1)
 N <- 200 #sample size
 X <- rbind(matrix(rnorm(N,mean=0, sd=1), nrow=1, ncol=N), c(rep(1,N))) #x = N*2 matrix - first value is randomly sampled from N(0,1), second value is 1 (intercept)
 theta.star = matrix(c(3,2)) #true weights 
@@ -204,7 +205,7 @@ num_iters <- 300 #number of iterations
 alpha <- 0.01 #learning rate
 gamma <- 0.02 #momentum coefficient
 theta_initial <- matrix(c(0,0), nrow=2)
-batch_size <- length(y)
+batch_size <- 1#length(y)
 theta0_lower <- -1
 theta1_lower <- -1
 theta0_upper <- 3.5
@@ -272,7 +273,7 @@ momentum_sgd1 <- momentum_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
 #sgd1 <- momentum_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
 #gd1 <- momentum_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Momentum")
-#vanillavsopti_contour_plotting(vgd_output,momentum_output,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"Momentum","SGD")
+#vanillavsopti_contour_plotting(vgd_sgd,momentum_sgd1,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"Momentum","SGD")
 #any2_contour_plotting(vgd_sgd,momentum_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Momentum SGD")
 #any4_contour_plotting(vgd_gd,vgd_sgd,momentum_gd1,momentum_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla GD", "Vanilla SGD","Momentum GD", "Momentum SGD")
 
@@ -308,7 +309,7 @@ nag_gd1 <- nag_gd(X,y,theta_initial,length(y),num_iters,alpha,gamma)
 #sgd1 <- nag_gd(X,y,theta_initial,1,num_iters,alpha,gamma)
 #gdvssgd_contour_plotting(gd_output = nag_gd1,sgd_output = nag_sgd,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"NAG")
 #any2_contour_plotting(vgd_sgd,nag_sgd,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "NAG SGD")
-
+#vanillavsopti_contour_plotting(vgd_sgd,nag_sgd,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"NAG","SGD")
 ##################
 # ADAGRAD
 ##################
@@ -348,7 +349,7 @@ adagrad_output <- adagrad(X,y,theta_initial,batch_size,num_iters,alpha,epsilon)
 #adagrad_sgd1 <- adagrad(X,y,theta_initial,1,num_iters,alpha,epsilon)
 #gdvssgd_contour_plotting(gd_output = adagrad_gd1,sgd_output = adagrad_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Adagrad")
 #any2_contour_plotting(vgd_sgd,adagrad_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Adagrad SGD")
-
+#vanillavsopti_contour_plotting(vgd_sgd,adagrad_sgd1,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"Adagrad","SGD")
 ##################
 # RMSPROP
 ##################
@@ -390,6 +391,7 @@ rmsprop_output <- rmsprop(X,y,theta_initial,batch_size,num_iters,alpha,epsilon,g
 #sgd1 <- rmsprop(X,y,theta_initial,1,num_iters,alpha,epsilon,gamma)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"RMSProp")
 #any2_contour_plotting(vgd_sgd,sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "RMSProp SGD")
+#vanillavsopti_contour_plotting(vgd_sgd,sgd1,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"RMSProp","SGD")
 
 ##################
 # ADAM
@@ -435,6 +437,7 @@ adam_output <- adam(X,y,theta_initial,batch_size,num_iters,alpha,epsilon,beta1, 
 #adam_sgd1 <- adam(X,y,theta_initial,1,num_iters,alpha,epsilon,beta1, beta2)
 #gdvssgd_contour_plotting(gd_output = adam_gd1,sgd_output = adam_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Adam")
 #any2_contour_plotting(vgd_sgd,adam_sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Adam SGD")
+#vanillavsopti_contour_plotting(vgd_sgd,adam_sgd1,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"Adam","SGD")
 
 ##################
 # ADAM - BIAS CORRECTED
@@ -479,6 +482,7 @@ corrected_adam_output <- corrected_adam(X,y,theta_initial,batch_size,num_iters,a
 #sgd1 <- corrected_adam(X,y,theta_initial,1,num_iters,alpha,epsilon,beta1, beta2)
 #gdvssgd_contour_plotting(gd_output = gd1,sgd_output = sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Corrected Adam")
 #any2_contour_plotting(vgd_sgd,sgd1,theta0_lower,theta0_upper,theta1_lower,theta1_upper,"Vanilla SGD", "Corrected Adam SGD")
+#vanillavsopti_contour_plotting(vgd_sgd,sgd1,theta0_lower,theta0_upper,theta1_lower, theta1_upper,"Corrected Adam","SGD")
 
 ##################
 # COMPILED RESULTS
